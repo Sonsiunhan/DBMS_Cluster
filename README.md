@@ -1,22 +1,6 @@
 # Cụm CSDL Phân Tán MySQL 8.0 (1 Master – 2 Slave) — Quản Lý Bán Hàng Siêu Thị
 
-Dự án triển khai kiến trúc nhân bản cơ sở dữ liệu **1 Primary (Master) – 2 Replica (Slave)** trên nền **MySQL 8.0 & Docker Compose**, áp dụng cho bài toán **Quản lý bán hàng chuỗi siêu thị (`supermarket_db`)** ở quy mô **2.620.520 bản ghi/node** (~7,86 triệu bản ghi trên toàn cụm). Hệ thống vận hành theo chuẩn doanh nghiệp với định danh giao dịch toàn cục **GTID (`Auto_Position = 1`)**, an toàn chống mất dữ liệu khi sập nguồn **Crash-Safety (`sync_binlog = 1`, `innodb_flush_log_at_trx_commit = 1`)**, khóa bảo vệ toàn vẹn **Super Read-Only** trên các máy Slave và bộ **8 kịch bản kiểm thử tự động** từ đồng bộ DML, ACID Rollback, Online DDL, đo độ trễ tải cao cho tới chuyển đổi dự phòng thảm họa (Failover).
-
----
-
-## Dành cho người dùng AI Agent (Thiết lập tự động 1 lệnh)
-
-Nếu bạn sử dụng trợ lý lập trình AI (Antigravity, Cursor, GitHub Copilot, Claude Code, Windsurf...), chỉ cần mở thư mục dự án và gửi câu lệnh sau cho Agent:
-
-> *"Hãy đọc kỹ tệp `README.md`, tự động kiểm tra hệ điều hành của máy tôi (Ubuntu/Linux hoặc Windows), kiểm tra các cổng `3306, 3307, 3308` trên `localhost`, dựng cụm Docker 1 Master – 2 Slave, khởi tạo dữ liệu 2,62 triệu bản ghi và xác nhận hệ thống sẵn sàng chạy 8 ca kiểm thử."*
-
-### Quy tắc thực thi bắt buộc dành cho AI Agent (`AGENT EXECUTION RULES`)
-1. **Nhận diện Hệ điều hành trước khi chạy lệnh:**
-   * **Trên Ubuntu / Linux / macOS / WSL2:** Chạy trực tiếp các tệp `.sh` bằng `bash scripts/...`.
-   * **Trên Windows (PowerShell / CMD):** Tất cả kịch bản kiểm thử viết bằng Bash và gọi `docker exec`. Agent **không** gọi trực tiếp `./scripts/...sh` trong PowerShell thuần mà phải gọi thông qua **Git Bash** (`& "C:\Program Files\Git\bin\bash.exe" -c "MSYS_NO_PATHCONV=1 bash ./scripts/..."`) hoặc **WSL** (`wsl bash -c "bash ./scripts/..."`). Luôn đặt biến môi trường `MSYS_NO_PATHCONV=1` khi dùng Git Bash trên Windows để ngăn Git Bash biến đổi đường dẫn Linux trong lệnh `docker exec`.
-2. **Xử lý ký tự xuống dòng (`CRLF` -> `LF`) trên Windows:** Nếu mã nguồn được tải dạng `.zip` hoặc clone trên Windows có `core.autocrlf=true`, chạy khử `\r` cho `config/**/*.cnf` và `scripts/**/*.sh` trước khi dựng container để MySQL và Bash trong Linux container không báo lỗi cú pháp.
-3. **Kiểm tra xung đột cổng `localhost` (`3306`, `3307`, `3308`):** Đảm bảo cổng `3306` không bị chiếm bởi dịch vụ MySQL/MariaDB/XAMPP cài sẵn trên máy host trước khi chạy `docker compose up -d`.
-4. **Quy tắc chạy Ca 7 (Failover):** Kịch bản `07_test_failover_disaster_recovery.sh` sẽ chủ động tắt `mysql-master` để thăng hạng `mysql-slave-1`. Luôn chạy Ca 7 **sau cùng** hoặc chạy ngay `./scripts/tests/07_restore_original_cluster.sh` sau khi kết thúc Ca 7 để khôi phục mô hình 1 Master – 2 Slave.
+Dự án triển khai kiến trúc nhân bản cơ sở dữ liệu **1 Primary (Master) – 2 Replica (Slave)** trên nền **MySQL 8.0 & Docker Compose**, áp dụng cho bài toán **Quản lý bán hàng chuỗi siêu thị (`supermarket_db`)** ở quy mô **2.620.520 bản ghi/node** (~7,86 triệu bản ghi trên toàn cụm). Hệ thống cấu hình định danh giao dịch toàn cục **GTID (`Auto_Position = 1`)**, cơ chế ghi bền vững **Crash-Safety (`sync_binlog = 1`, `innodb_flush_log_at_trx_commit = 1`)**, khóa bảo vệ toàn vẹn **Super Read-Only** trên các máy Slave và bộ **8 kịch bản kiểm thử tự động** từ đồng bộ DML, ACID Rollback, Online DDL, đo độ trễ tải cao cho tới chuyển đổi dự phòng sự cố (Failover).
 
 ---
 
