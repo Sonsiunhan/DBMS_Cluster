@@ -195,7 +195,6 @@ DBMS_Cluster/
 ├── scripts/
 │   ├── 01_setup_replication.sh               # Tự động tạo user & bắt tay GTID Replication
 │   ├── 02_verify_replication.sh              # Đối soát số lượng bản ghi 6 bảng trên cả 3 node
-│   ├── 03_test_scenarios.sh                  # Kịch bản kiểm thử tổng hợp nhanh
 │   ├── 04_seed_million_records.sh            # Thiết lập cụm & sinh 2.620.520 bản ghi/node
 │   └── tests/                                # Bộ 8 kịch bản kiểm thử chuyên sâu độc lập
 │       ├── 01_test_dml_replication.sh        # Ca 1: Đồng bộ INSERT, UPDATE, DELETE xuôi
