@@ -765,6 +765,15 @@ Nhờ đó, tính toàn vẹn tham chiếu của cơ sở dữ liệu được M
 
 Quy trình triển khai thực tế cụm cơ sở dữ liệu phân tán 1 Master -- 2 Slave cho hệ thống quản lý bán hàng siêu thị được tự động hóa theo 4 giai đoạn tuần tự: (1) Khởi tạo hạ tầng container và mạng nội bộ bằng Docker Compose; (2) Tinh chỉnh tham số engine MySQL tách biệt giữa Master và Slave; (3) Thiết lập kết nối nhân bản tự động theo chuẩn GTID; và (4) Nạp dữ liệu nghiệp vụ ban đầu kết hợp nghiệm thu trạng thái đồng bộ toàn cụm.
 
+Toàn bộ mã nguồn cấu hình, lược đồ SQL và bộ kịch bản kiểm thử đã được nhóm công khai tại kho lưu trữ GitHub: \url{https://github.com/Sonsiunhan/DBMS_Cluster} (đồng thời mã nguồn SQL khởi tạo bảng cũng được đính kèm đầy đủ tại Phụ lục~\ref{chap:appendix_sql} để có thể dựng thủ công trực tiếp từ báo cáo). Để tái lập nhanh toàn bộ cụm 2,62 triệu bản ghi và chạy kiểm thử, thực hiện các lệnh sau:
+
+\begin{lstlisting}[language=bash, caption={Lệnh tải mã nguồn và khởi tạo tự động toàn bộ cụm từ kho lưu trữ GitHub}]
+git clone https://github.com/Sonsiunhan/DBMS_Cluster.git
+cd DBMS_Cluster && docker compose up -d
+bash ./scripts/04_seed_million_records.sh
+bash ./scripts/02_verify_replication.sh
+\end{lstlisting}
+
 \section{Triển khai Hạ tầng với Docker Compose}
 Tệp cấu hình \texttt{docker-compose.yml} tại thư mục gốc định nghĩa tập trung toàn bộ cụm 3 máy chủ MySQL 8.0, đảm bảo tính đồng nhất về phiên bản hệ quản trị, không gian mạng và ổ đĩa lưu trữ bền vững mỗi khi khởi tạo môi trường:
 
@@ -907,7 +916,7 @@ START REPLICA;
 \section{Khởi tạo Dữ liệu Siêu thị và Xác minh Trạng thái Đồng bộ}
 
 \subsection{Nạp Lược đồ và Mở rộng Quy mô Hàng triệu Bản ghi}
-Khi kênh nhân bản đã thông suốt, cấu trúc bảng nền tảng và tập dữ liệu quy mô lớn của siêu thị được khởi tạo tập trung tại cổng vào của \texttt{mysql-master} kèm kịch bản sinh tải \texttt{04\_seed\_million\_records.sh}:
+Khi kênh nhân bản đã thông suốt, cấu trúc bảng nền tảng và dữ liệu mẫu của siêu thị (chi tiết mã SQL tại Phụ lục~\ref{chap:appendix_sql}) được khởi tạo tập trung tại cổng vào của \texttt{mysql-master} kèm kịch bản sinh tải \texttt{04\_seed\_million\_records.sh}:
 
 \begin{lstlisting}[language=bash, caption={Nạp lược đồ gốc và sinh 2,62 triệu bản ghi trên Master}]
 docker exec -i mysql-master mysql -uroot -prootpassword \
@@ -1400,5 +1409,131 @@ Phụ lục này tổng hợp đầy đủ bộ \textbf{8 ảnh chụp màn hìn
     \caption{Ảnh chụp Terminal Ca 8: Đối soát 2.620.520 bản ghi/node và đo tốc độ truy vấn trên Slave}
     \label{fig:ca8}
 \end{figure}
+
+% ------------------------------------------------------------------------------
+% PHỤ LỤC B: MÃ NGUỒN SQL KHỞI TẠO LƯỢC ĐỒ
+% ------------------------------------------------------------------------------
+\chapter{Mã Nguồn SQL Khởi Tạo Lược Đồ Và Dữ Liệu Nền}
+\label{chap:appendix_sql}
+
+Trong trường hợp người đọc muốn dựng thủ công cụm CSDL trực tiếp từ tệp báo cáo mà không tải từ kho lưu trữ GitHub, thực thi lần lượt hai khối mã SQL dưới đây trên \texttt{mysql-master} (sau khi đã hoàn tất các bước cấu hình tại Mục 3.1 -- 3.3) là có thể chạy thử ngay toàn bộ các kịch bản kiểm thử ở Chương 4.
+
+\section{Khởi tạo lược đồ 6 bảng CSDL siêu thị}
+
+\begin{lstlisting}[language=SQL, caption={Mã nguồn DDL khởi tạo CSDL và 6 bảng chuẩn InnoDB (tệp sql/01\_schema.sql)}]
+CREATE DATABASE IF NOT EXISTS supermarket_db
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE supermarket_db;
+
+DROP TABLE IF EXISTS order_details;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS categories;
+
+CREATE TABLE categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    barcode VARCHAR(50) UNIQUE NOT NULL,
+    product_name VARCHAR(150) NOT NULL,
+    category_id INT NOT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT 'Cai',
+    price DECIMAL(12, 2) NOT NULL,
+    stock_quantity INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_products_categories FOREIGN KEY (category_id)
+      REFERENCES categories(category_id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15) UNIQUE,
+    membership_card VARCHAR(30) UNIQUE,
+    points INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_name VARCHAR(100) NOT NULL,
+    role VARCHAR(50) DEFAULT 'Thu ngan',
+    phone VARCHAR(15),
+    salary DECIMAL(12, 2) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_code VARCHAR(30) UNIQUE NOT NULL,
+    customer_id INT NULL,
+    employee_id INT NOT NULL,
+    total_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    discount_amount DECIMAL(12, 2) DEFAULT 0,
+    final_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    payment_method VARCHAR(30) DEFAULT 'Tien mat',
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id)
+      REFERENCES customers(customer_id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_orders_employees FOREIGN KEY (employee_id)
+      REFERENCES employees(employee_id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE order_details (
+    order_detail_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(12, 2) NOT NULL,
+    subtotal DECIMAL(12, 2) NOT NULL,
+    CONSTRAINT fk_order_details_orders FOREIGN KEY (order_id)
+      REFERENCES orders(order_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_order_details_products FOREIGN KEY (product_id)
+      REFERENCES products(product_id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+\end{lstlisting}
+
+\clearpage
+\section{Dữ liệu nền phục vụ kiểm thử độc lập}
+
+\begin{lstlisting}[language=SQL, caption={Nạp các bản ghi danh mục và mặt hàng gốc phục vụ kiểm thử (tệp sql/02\_sample\_data.sql)}]
+USE supermarket_db;
+
+INSERT INTO categories (category_name, description) VALUES
+('Thuc pham tuoi song', 'Thit, ca, hai san, rau cu'),
+('Hoa my pham', 'Xa phong, nuoc giat, dau goi'),
+('Banh keo', 'Banh ngot, snack, keo'),
+('Do uong', 'Nuoc ngot, nuoc khoang, sua, bia'),
+('Gia vi & Do kho', 'Nuoc mam, dau an, gao');
+
+INSERT INTO employees (employee_name, role, phone, salary) VALUES
+('Nguyen Van An', 'Thu ngan', '0901234567', 7500000),
+('Tran Thi Bich', 'Thu ngan', '0912345678', 7500000),
+('Le Hoang Nam', 'Quan ly ca', '0987654321', 12000000);
+
+INSERT INTO customers (customer_name, phone, membership_card, points) VALUES
+('Pham Minh Tuan', '0933112233', 'VIP001', 150),
+('Vu Thi Mai', '0944223344', 'MEM002', 45),
+('Dang Quoc Huy', '0977889900', 'MEM003', 80);
+
+INSERT INTO products (barcode, product_name, category_id, unit, price, stock_quantity) VALUES
+('893456701', 'Dau an Neptune Gold 1L', 5, 'Chai', 52000, 120),
+('893456702', 'Nuoc mam Nam Ngu 750ml', 5, 'Chai', 38000, 200),
+('893456703', 'Gao ST25 tui 5kg', 5, 'Tui', 185000, 50),
+('893456704', 'Nuoc ngot Coca Cola 320ml', 4, 'Lon', 10000, 500),
+('893456705', 'Bia Heineken lon 330ml', 4, 'Lon', 22000, 300),
+('893456706', 'Snack khoai tay OStar', 3, 'Goi', 14000, 150),
+('893456707', 'Nuoc giat OMO Matic 2kg', 2, 'Tui', 145000, 80),
+('893456708', 'Dau goi Clear Men 630g', 2, 'Chai', 179000, 60),
+('893456709', 'Thit ba roi heo CP (500g)', 1, 'Hop', 75000, 40),
+('893456710', 'Bap cai trang Da Lat (kg)', 1, 'Kg', 18000, 100);
+\end{lstlisting}
 
 \end{document}
