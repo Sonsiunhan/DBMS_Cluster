@@ -157,8 +157,6 @@ Nhóm chúng em xin chân thành cảm ơn thầy \textbf{GVC. ThS. Vũ Bá Duy}
 % ------------------------------------------------------------------------------
 \tableofcontents
 \newpage
-\listoffigures
-\listoftables
 \newpage
 
 \pagenumbering{arabic}
@@ -174,8 +172,8 @@ Nhóm chúng em xin chân thành cảm ơn thầy \textbf{GVC. ThS. Vũ Bá Duy}
 Trong các hệ thống chuỗi siêu thị bán lẻ hiện đại, hệ thống cơ sở dữ liệu phải xử lý liên tục hàng chục nghìn lượt giao dịch mỗi ngày. Khi sử dụng một máy chủ CSDL đơn lẻ, hệ thống nhanh chóng đối mặt với ba rào cản kỹ thuật nghiêm trọng:
 \begin{enumerate}
     \item \textbf{Tắc nghẽn I/O và suy giảm hiệu năng tại giờ cao điểm:} Tại các khung giờ cao điểm (cuối tuần, lễ Tết), hàng chục quầy thu ngân thực hiện quét mã vạch tra cứu giá, áp mã khuyến mãi và thanh toán đồng thời. Các thao tác đọc và ghi cạnh tranh trực tiếp tài nguyên đĩa cứng và khóa, gây nghẽn hàng đợi và làm chậm toàn bộ hệ thống.
-    \item \textbf{Rủi ro đơn điểm lỗi (Single Point of Failure -- SPOF):} Khi toàn bộ dữ liệu chỉ nằm trên một máy chủ duy nhất, bất kỳ sự cố phần cứng nào (cháy nguồn, hỏng ổ cứng, đứt cáp mạng) cũng sẽ làm tê liệt toàn bộ hoạt động thanh toán của siêu thị, gây thiệt hại nặng nề về kinh tế và trải nghiệm khách hàng.
-    \item \textbf{Giới hạn của mở rộng theo chiều dọc:} Để tăng năng lực xử lý, giải pháp nâng cấp phần cứng thường vô cùng đắt đỏ và nhanh chóng chạm trần giới hạn vật lý của bo mạch chủ mà không giải quyết được tính sẵn sàng cao.
+    \item \textbf{Rủi ro đơn điểm lỗi (Single Point of Failure -- SPOF):} Khi toàn bộ dữ liệu chỉ nằm trên một máy chủ duy nhất, bất kỳ sự cố phần cứng nào (cháy nguồn, hỏng ổ cứng, đứt cáp mạng) cũng sẽ làm tê liệt toàn bộ hoạt động thanh toán của siêu thị, gây ảnh hưởng đáng kể về kinh tế và trải nghiệm khách hàng.
+    \item \textbf{Giới hạn của mở rộng theo chiều dọc:} Để tăng năng lực xử lý, giải pháp nâng cấp phần cứng thường tốn kém chi phí và nhanh chóng chạm trần giới hạn vật lý của bo mạch chủ mà không giải quyết được tính sẵn sàng cao.
 \end{enumerate}
 
 \subsection{Nhu cầu phân tách Đọc -- Ghi đặc thù của ngành bán lẻ}
@@ -185,7 +183,7 @@ Khảo sát thực tế trong hoạt động siêu thị cho thấy tỷ lệ tr
     \item \textbf{Luồng Ghi:} Chỉ phát sinh khi khách hàng hoàn tất thanh toán và in hóa đơn hoặc thủ kho nhập thêm hàng mới.
 \end{itemize}
 
-Xuất phát từ nhu cầu đọc vượt trội, giải pháp tối ưu nhất là phân tách độc lập luồng Đọc và Ghi thông qua mô hình nhân bản \textbf{1 Master -- 2 Slave}: Master tập trung tối đa tài nguyên cho các giao dịch ghi cốt lõi, trong khi 2 Slave chia sẻ toàn bộ tải đọc của hàng chục quầy thu ngân.
+Xuất phát từ nhu cầu đọc vượt trội, giải pháp phù hợp là phân tách độc lập luồng Đọc và Ghi thông qua mô hình nhân bản \textbf{1 Master -- 2 Slave}: Master tập trung tài nguyên cho các giao dịch ghi cốt lõi, trong khi 2 Slave chia sẻ tải đọc của hàng chục quầy thu ngân.
 
 \begin{table}[htbp]
 \centering
@@ -197,7 +195,7 @@ Xuất phát từ nhu cầu đọc vượt trội, giải pháp tối ưu nhất
 Tính sẵn sàng & Thấp; gián đoạn hoạt động khi máy chủ gặp sự cố. & Rất cao; hỗ trợ thay thế khi Master gặp lỗi. \\ \hline
 Hiệu năng đọc & Nghẽn I/O đĩa khi lượng truy vấn đọc/ghi tăng cao. & Tăng mạnh nhờ cơ chế phân tải đọc sang các trạm Slave. \\ \hline
 Khả năng mở rộng & Mở rộng chiều dọc tốn kém và có giới hạn vật lý. & Mở rộng chiều ngang linh hoạt khi cần nâng công suất. \\ \hline
-Bảo vệ dữ liệu & Rủi ro mất mát dữ liệu nếu phát sinh hỏng hóc phần cứng. & Dữ liệu được đồng bộ liên tục theo thời gian thực giữa các trạm. \\ \hline
+Bảo vệ dữ liệu & Rủi ro mất mát dữ liệu nếu phát sinh hỏng hóc phần cứng. & Dữ liệu được nhân bản bất đồng bộ liên tục sang các trạm bản sao dự phòng. \\ \hline
 Chi phí triển khai & Yêu cầu máy chủ cấu hình lớn, chi phí đầu tư cao. & Tối ưu chi phí nhờ tận dụng các máy chủ phổ thông kết nối nội bộ. \\ \hline
 \end{tabularx}
 \end{table}
@@ -207,13 +205,15 @@ Chi phí triển khai & Yêu cầu máy chủ cấu hình lớn, chi phí đầu
 \subsection{Bản chất của kỹ thuật Nhân bản mức Logic}
 Hệ quản trị CSDL MySQL sử dụng cơ chế nhân bản mức sự kiện logic thay vì sao chép từng khối đĩa cứng vật lý. Nhờ đó, các máy Slave vừa duy trì tiếp nhận thay đổi vừa có thể mở cửa cho hàng nghìn quầy thu ngân đọc dữ liệu đồng thời.
 
-\subsection{Kiến trúc luồng và chu trình đồng bộ}
-Quá trình nhân bản giữa Master và các Slave diễn ra liên tục qua 3 luồng xử lý ngầm:
+\subsection{Kiến trúc luồng và chu trình nhân bản bất đồng bộ}
+Quá trình nhân bản giữa Master và các Slave diễn ra liên tục qua 3 luồng xử lý ngầm độc lập:
 \begin{enumerate}
     \item \textbf{Luồng Binlog Dump Thread (trên Master):} Khi Slave kết nối đến Master, Master sinh ra một luồng Dump Thread chuyên dụng. Luồng này liên tục đọc các sự kiện mới trong Binary Log của Master và truyền trực tiếp qua kết nối mạng TCP/IP socket sang Slave.
     \item \textbf{Luồng Receiver / IO Thread (trên Slave):} Luồng này lắng nghe các gói tin gửi từ Master, tiếp nhận các sự kiện nhị phân và ghi tuần tự vào một tệp nhật ký cục bộ trên Slave gọi là Relay Log.
     \item \textbf{Luồng Applier / SQL Thread (trên Slave):} Độc lập với luồng IO, luồng SQL liên tục đọc các sự kiện từ Relay Log, giải mã và thực thi lại y hệt các câu lệnh đó vào động cơ lưu trữ InnoDB của Slave, đưa dữ liệu của Slave đồng nhất với Master.
 \end{enumerate}
+
+Mô hình tách biệt ba luồng trên vận hành theo cơ chế \textbf{nhân bản bất đồng bộ}: ngay khi Master ghi nhận xong giao dịch xuống nhật ký của chính nó và thực hiện \texttt{COMMIT}, Master lập tức chuyển sang xử lý giao dịch tiếp theo mà không phải đứng chờ xác nhận từ các Slave. Cơ chế này đặc biệt phù hợp với nghiệp vụ bán lẻ siêu thị vì giữ cho quầy thu ngân luôn thanh toán tức tốc và không bị treo dây chuyền nếu một máy Slave gặp sự cố mạng; các thay đổi được truyền ngầm sang Slave chỉ sau vài mili-giây và được khóa chỉ đọc bảo vệ khỏi xung đột dữ liệu.
 
 \begin{figure}[htbp]
 \centering
@@ -292,14 +292,14 @@ Quá trình nhân bản giữa Master và các Slave diễn ra liên tục qua 3
 Hệ thống cụm cơ sở dữ liệu phân tán được ảo hóa hoàn toàn bằng công nghệ container Docker và điều phối tập trung thông qua tệp cấu hình \texttt{docker-compose.yml}. Cả 3 node đều khởi chạy phiên bản MySQL 8.0 ổn định, cùng tham gia vào một mạng ảo hóa độc lập:
 \begin{itemize}
     \item \textbf{Mạng ảo hóa cô lập (\texttt{dbms-net}):} Nhóm cấu hình một mạng bridge chuyên dụng mang tên \texttt{dbms-net}. Mạng này thiết lập một phân vùng mạng con ảo tách biệt hoàn toàn với môi trường máy chủ host, ngăn chặn các truy cập trái phép từ bên ngoài quét thẳng vào các cổng dịch vụ nội bộ của CSDL.
-    \item \textbf{Cơ chế phân giải tên miền nhúng:} Docker Engine tích hợp sẵn một máy chủ DNS nội bộ phục vụ riêng cho mạng bridge. Các container trong cụm liên lạc với nhau trực tiếp qua định danh dịch vụ (\texttt{mysql-master}, \texttt{mysql-slave-1}, \texttt{mysql-slave-2}). Cơ chế này mang ý nghĩa sống còn trong kiến trúc nhân bản: Khi một container gặp sự cố và khởi động lại, địa chỉ IP động có thể bị thay đổi, nhưng luồng kết nối nhân bản giữa các node vẫn duy trì liên tục và chuẩn xác nhờ phân giải tự động theo tên dịch vụ mà không cần tái cấu hình IP thủ công.
+    \item \textbf{Cơ chế phân giải tên miền nhúng:} Docker Engine tích hợp sẵn một máy chủ DNS nội bộ phục vụ riêng cho mạng bridge. Các container trong cụm liên lạc với nhau trực tiếp qua định danh dịch vụ (\texttt{mysql-master}, \texttt{mysql-slave-1}, \texttt{mysql-slave-2}). Cơ chế này đóng vai trò quan trọng trong kiến trúc nhân bản: khi một container gặp sự cố và khởi động lại, địa chỉ IP động có thể bị thay đổi, nhưng luồng kết nối nhân bản giữa các node vẫn duy trì liên tục và chuẩn xác nhờ phân giải tự động theo tên dịch vụ mà không cần tái cấu hình IP thủ công.
 \end{itemize}
 
 \subsection{Cơ chế Quản lý Lưu trữ Bền vững}
-Do đặc thù các container là môi trường vô trạng thái và dữ liệu bên trong lớp ghi sẽ bị xóa sạch khi container bị hủy hoặc tái tạo, nhóm đã thiết lập giải pháp lưu trữ bền vững cấp doanh nghiệp:
+Do đặc thù các container là môi trường vô trạng thái và dữ liệu bên trong lớp ghi sẽ bị xóa sạch khi container bị hủy hoặc tái tạo, nhóm đã thiết lập giải pháp lưu trữ bền vững thông qua Docker Volume:
 \begin{itemize}
     \item \textbf{Khởi tạo Volume định danh độc lập:} Ba ổ đĩa ảo riêng biệt được định nghĩa trong \texttt{docker-compose.yml} gồm \texttt{master\_data}, \texttt{slave1\_data} và \texttt{slave2\_data}. Mỗi volume được gắn kết vào thư mục \texttt{/var/lib/mysql} chứa dữ liệu cốt lõi của từng container tương ứng.
-    \item \textbf{Bảo toàn dữ liệu và phân tách vật lý:} Việc sử dụng các volume riêng biệt đảm bảo rằng toàn bộ các tệp dữ liệu bảng InnoDB, Binary Log, Relay Log và trạng thái giao dịch GTID đều được lưu cố định trên hệ thống tệp của máy chủ vật lý. Nhờ vậy, dữ liệu của cụm siêu thị luôn được bảo toàn tuyệt đối 100\% qua các chu kỳ khởi động lại, bảo trì hoặc nâng cấp hệ thống mà không có nguy cơ xung đột đọc/ghi giữa các trạm.
+    \item \textbf{Bảo toàn dữ liệu và phân tách lưu trữ:} Việc sử dụng các volume riêng biệt đảm bảo rằng toàn bộ các tệp dữ liệu bảng InnoDB, Binary Log, Relay Log và trạng thái giao dịch GTID đều được lưu cố định trên hệ thống tệp của máy chủ host. Nhờ vậy, dữ liệu của cụm siêu thị được lưu giữ ổn định qua các chu kỳ khởi động lại, bảo trì hoặc nâng cấp container mà không xảy ra xung đột đọc/ghi tệp giữa các trạm.
 \end{itemize}
 
 \subsection{Phân định Vai trò và Quy hoạch Cổng Truy cập Ứng dụng}
@@ -323,9 +323,12 @@ Nhằm hiện thực hóa chiến lược phân tách tải Đọc -- Ghi cho �
 \end{tabularx}
 \end{table}
 
+\subsection{Phạm vi Môi trường Thực nghiệm và Lưu ý khi Triển khai Vật lý}
+Cần lưu ý rằng trong phạm vi bài tập lớn, việc vận hành cả ba container trên cùng một máy chủ cá nhân đóng vai trò như một môi trường thử nghiệm có kiểm soát nhằm loại bỏ nhiễu đường truyền ngoại cảnh. Dù ba nút tách biệt về không gian mạng TCP/IP, tiến trình và ổ đĩa Volume để kiểm chứng đúng cơ chế GTID, khóa ghi hay Failover của MySQL, chúng vẫn chia sẻ chung CPU, RAM, băng thông đĩa cứng và nguồn điện của máy host. Khi chuyển giao mô hình này sang ba máy chủ vật lý độc lập ngoài thực tế, cấu hình nhân bản cốt lõi được giữ nguyên nhưng cần thiết lập thêm quy tắc mở cổng tường lửa \texttt{3306}, mã hóa kênh truyền SSL/TLS, đồng bộ đồng hồ hệ thống qua giao thức NTP và tính đến độ trễ vật lý của đường truyền mạng LAN/WAN.
+
 \section{Các Cơ Chế Kỹ Thuật Nâng Cao Được Triển Khai Trong Cụm}
 
-Để đạt tiêu chuẩn của một hệ thống cơ sở dữ liệu doanh nghiệp, nhóm đã nghiên cứu và cấu hình bổ sung 4 công nghệ cốt lõi trong cụm:
+Để tăng cường độ tin cậy cho hệ thống cơ sở dữ liệu phân tán, nhóm đã nghiên cứu và cấu hình bổ sung 4 cơ chế kỹ thuật trọng tâm trong cụm:
 
 \subsection{Cơ chế Định danh Giao dịch Toàn cầu (GTID)}
 \textbf{Vấn đề của cơ chế truyền thống (File \& Position):}
@@ -354,17 +357,17 @@ Ví dụ: \texttt{daedfed3-e3e2-11f1-8d01-ce0ffd3c2e4c:1-24} nghĩa là máy ch�
 \textmd{\textbf{Tiêu chí so sánh}} & \textmd{\textbf{Cơ chế File \& Position}} & \textmd{\textbf{Cơ chế GTID}} \\ \hline
 Cách định vị & Tên file log và tọa độ byte offset vật lý (\texttt{File}, \texttt{Pos}). & Mã giao dịch logic duy nhất trên toàn mạng (\texttt{UUID:Trx\_ID}). \\ \hline
 Cấu hình kết nối & Bắt buộc tra cứu thủ công \texttt{SHOW MASTER STATUS}. & Tự động hoàn toàn với \texttt{MASTER\_AUTO\_POSITION = 1}. \\ \hline
-Khắc phục sự cố & Rất phức tạp, dễ nhầm lẫn offset gây dừng nhân bản. & Tức thì, an toàn tuyệt đối nhờ cơ chế tự bù trừ tập hợp. \\ \hline
-Chống trùng giao dịch & Không có; chạy lại dễ lỗi trùng khóa chính (\texttt{ERROR 1062}). & Tuyệt đối; Slave tự động bỏ qua giao dịch nếu mã GTID đã có. \\ \hline
+Khắc phục sự cố & Rất phức tạp, dễ nhầm lẫn offset gây dừng nhân bản. & Nhanh chóng, an toàn nhờ cơ chế tự đối chiếu và bù trừ tập hợp. \\ \hline
+Chống trùng giao dịch & Không có; chạy lại dễ lỗi trùng khóa chính (\texttt{ERROR 1062}). & Hỗ trợ sẵn; Slave tự động bỏ qua giao dịch nếu mã GTID đã thực thi. \\ \hline
 \end{tabularx}
 \end{table}
 
 \subsection{Cơ chế Bảo vệ An toàn Bền vững khi Gặp Sự Cố}
-Nhằm đảm bảo dữ liệu hóa đơn của siêu thị không bị thất thoát khi máy chủ bị rút điện hoặc sập nguồn đột xuất, nhóm đã thiết lập cấu hình an toàn kép:
+Nhằm hạn chế thất thoát dữ liệu hóa đơn của siêu thị khi tiến trình CSDL gặp sự cố hoặc mất nguồn đột xuất, nhóm thiết lập cấu hình ghi bền vững:
 \begin{itemize}
     \item \textbf{\texttt{sync\_binlog = 1}:} Ép MySQL đồng bộ hóa mỗi giao dịch trực tiếp xuống đĩa cứng ngay sau khi ghi vào Binary Log, không cho phép lưu tạm trên bộ nhớ đệm RAM.
     \item \textbf{\texttt{innodb\_flush\_log\_at\_trx\_commit = 1}:} Tuân thủ nghiêm ngặt chuẩn bền vững của ACID, ép xả nhật ký Redo Log của InnoDB xuống đĩa tại mỗi lệnh \texttt{COMMIT}.
-    \item \textbf{\texttt{relay\_log\_recovery = ON} (trên 2 Slave):} Nếu Slave bị sập nguồn khi đang nhận dở dang gói tin từ mạng, khi khởi động lại, Slave sẽ tự động hủy bỏ đoạn Relay Log lỗi đó và yêu cầu Master gửi lại, loại bỏ triệt để nguy cơ hỏng tệp nhật ký.
+    \item \textbf{\texttt{relay\_log\_recovery = ON} (trên 2 Slave):} Nếu Slave bị sập nguồn khi đang nhận dở dang gói tin từ mạng, khi khởi động lại, Slave sẽ tự động hủy bỏ đoạn Relay Log lỗi đó và yêu cầu Master gửi lại, giảm thiểu nguy cơ hỏng tệp nhật ký trung chuyển.
     \item \textbf{\texttt{log\_replica\_updates = ON} (trên 2 Slave):} Cho phép Slave tự ghi lại các giao dịch nhận được vào Binary Log của chính nó, giúp Slave sẵn sàng thăng hạng làm Master bất cứ lúc nào.
 \end{itemize}
 
@@ -372,23 +375,23 @@ Nhằm đảm bảo dữ liệu hóa đơn của siêu thị không bị thất 
 Để đảm bảo tính toàn vẹn dữ liệu, các máy Slave được áp dụng cả hai cấp độ bảo vệ:
 \begin{itemize}
     \item \texttt{read\_only = ON}: Chặn các thao tác ghi từ người dùng và ứng dụng thông thường.
-    \item \textbf{\texttt{super\_read\_only = ON}:} Cấp độ bảo vệ cao nhất, chặn cả tài khoản có đặc quyền quản trị. Điểm đặc biệt là cơ chế này tự động miễn trừ cho luồng \textbf{Replication Applier Thread}, cho phép luồng ngầm tiếp tục cập nhật dữ liệu từ Master sang trong khi ngăn cấm tuyệt đối mọi hành vi can thiệp trái phép từ bên ngoài.
+    \item \textbf{\texttt{super\_read\_only = ON}:} Cấp độ khóa ghi nghiêm ngặt hơn, chặn cả tài khoản có đặc quyền quản trị. Điểm đáng chú ý là cơ chế này vẫn miễn trừ cho luồng \textbf{Replication Applier Thread}, cho phép luồng ngầm tiếp tục cập nhật dữ liệu từ Master sang trong khi ngăn chặn các thao tác ghi trực tiếp từ bên ngoài.
 \end{itemize}
 
 \subsection{Chiến lược Tự động Dọn dẹp Nhật ký}
 Với quy mô siêu thị xuất hàng nghìn đơn hàng mỗi ngày, các tệp Binary Log nếu không được quản lý sẽ nhanh chóng phình to hàng trăm Gigabyte làm tràn ổ cứng. Nhóm cấu hình:
 \begin{itemize}
     \item \textbf{\texttt{binlog\_expire\_logs\_seconds = 604800}:}  MySQL tự động kiểm tra và xóa các tệp nhật ký nhị phân cũ hơn 7 ngày.
-    \item \textbf{\texttt{max\_binlog\_size = 100M}:} Khi tệp log đạt dung lượng 100 Megabytes, hệ thống tự động tách sang tệp log mới, giúp việc quản lý và sao lưu phân đoạn đạt hiệu quả cao nhất.
+    \item \textbf{\texttt{max\_binlog\_size = 100M}:} Khi tệp log đạt dung lượng 100 Megabytes, hệ thống tự động tách sang tệp log mới, giúp việc quản lý và sao lưu phân đoạn thuận tiện hơn.
 \end{itemize}
 
 \section{Tổng Kết Năng Lực Cụm Cơ Sở Dữ Liệu Đã Thiết Lập}
-Qua quá trình thiết kế và cài đặt, cụm CSDL \texttt{DBMS\_Cluster} đã hoàn chỉnh 100\% các tiêu chuẩn kiến trúc:
+Qua quá trình thiết kế và cài đặt, cụm CSDL \texttt{DBMS\_Cluster} đã đáp ứng đầy đủ các mục tiêu kiến trúc đề ra:
 \begin{enumerate}
-    \item Đã xây dựng hoàn thiện môi trường phân tán 3 node độc lập, có mạng nội bộ và hệ thống lưu trữ bền vững.
-    \item Vận hành thông suốt cơ chế nhân bản tự động theo thời gian thực (Real-time Replication) trên nền tảng GTID.
-    \item Cấu hình đầy đủ các tham số bảo vệ toàn vẹn dữ liệu chuẩn doanh nghiệp (Crash-Safety, Super Read-Only, Auto Purge Log).
-    \item Hệ thống sẵn sàng đáp ứng trọn vẹn cho việc triển khai lược đồ quản lý siêu thị quy mô lớn và tiến hành bộ 8 ca kiểm thử thực nghiệm ở các chương tiếp theo.
+    \item Xây dựng môi trường mô phỏng cụm phân tán 3 node độc lập về mạng nội bộ và không gian lưu trữ.
+    \item Vận hành thông suốt cơ chế nhân bản bất đồng bộ tự động với độ trễ thấp trên nền tảng GTID.
+    \item Cấu hình đầy đủ các tham số bảo vệ toàn vẹn dữ liệu (Crash-Safety, Super Read-Only, Auto Purge Log).
+    \item Hệ thống sẵn sàng phục vụ việc triển khai lược đồ quản lý siêu thị quy mô lớn và tiến hành bộ 8 ca kiểm thử thực nghiệm ở các chương tiếp theo.
 \end{enumerate}
 
 % ------------------------------------------------------------------------------
@@ -710,7 +713,7 @@ Bảng \texttt{order\_details} lưu trữ từng mặt hàng thành phần trong
 \end{table}
 
 \section{Các Quyết định Thiết kế Nghiệp vụ và Tối ưu Hóa Cụm Phân Tán}
-Thiết kế CSDL \texttt{supermarket\_db} không chỉ đáp ứng bài toán lưu trữ tĩnh mà còn giải quyết triệt để các thách thức đặc thù của nghiệp vụ siêu thị tốc độ cao và môi trường cụm nhân bản MySQL phân tán:
+Thiết kế CSDL \texttt{supermarket\_db} không chỉ đáp ứng bài toán lưu trữ tĩnh mà còn giải quyết hiệu quả các yêu cầu đặc thù của nghiệp vụ siêu thị và môi trường cụm nhân bản MySQL:
 
 \subsection{Tối ưu Hóa Tra cứu Mã Vạch Điểm Bán POS}
 \noindent\textbf{Vấn đề nghiệp vụ:} Trong môi trường bán lẻ tại quầy POS, thu ngân liên tục dùng máy quét mã vạch để đọc các mã định danh sản phẩm. Nếu hệ thống phải thực hiện quét toàn bảng trên hàng chục nghìn sản phẩm, thời gian phản hồi sẽ tăng đột biến, gây nghẽn quầy thu ngân trong giờ cao điểm.
@@ -722,7 +725,7 @@ Thiết kế CSDL \texttt{supermarket\_db} không chỉ đáp ứng bài toán l
 \noindent\textbf{Vấn đề nghiệp vụ:} Giá bán lẻ của hàng hóa trong bảng \texttt{products} thường xuyên biến động theo thời gian do chính sách điều chỉnh giá, lạm phát hoặc các đợt khuyến mãi. Nếu bảng \texttt{order\_details} chỉ tham chiếu động đến \texttt{products.price} mà không lưu giá tĩnh, khi sản phẩm thay đổi giá trong tương lai, tổng tiền của toàn bộ hóa đơn lịch sử trong quá khứ sẽ bị tính toán sai lệch, gây vi phạm nghiêm trọng quy chuẩn kiểm toán tài chính.
 
 \vspace{0.2cm}
-\noindent\textbf{Giải pháp thiết kế:} Bảng \texttt{order\_details} được chủ động bổ sung trường \texttt{unit\_price DECIMAL(12,2)}. Khi giao dịch phát sinh, đơn giá tại đúng thời điểm đó được chụp lại và ghi cố định vào dòng chi tiết hóa đơn. Thành tiền \texttt{subtotal} được tính toán dựa trên đơn giá lịch sử này, bảo đảm tính bất biến tuyệt đối của số liệu kế toán qua mọi thời kỳ.
+\noindent\textbf{Giải pháp thiết kế:} Bảng \texttt{order\_details} được chủ động bổ sung trường \texttt{unit\_price DECIMAL(12,2)}. Khi giao dịch phát sinh, đơn giá tại đúng thời điểm đó được chụp lại và ghi cố định vào dòng chi tiết hóa đơn. Thành tiền \texttt{subtotal} được tính toán dựa trên đơn giá lịch sử này, bảo đảm tính toàn vẹn của số liệu kế toán qua các thời kỳ.
 
 \subsection{Mô Hình Xử Lý Khách Hàng Vãng Lai Linh Hoạt}
 \noindent\textbf{Vấn đề nghiệp vụ:} Khách mua hàng tại siêu thị gồm hai nhóm đối tượng: khách hàng thân thiết có thẻ thành viên và khách hàng vãng lai mua sắm ngẫu nhiên. Nếu thiết lập ràng buộc \texttt{customer\_id NOT NULL}, hệ thống sẽ bắt buộc nhân viên phải tạo tài khoản giả lập cho mọi khách vãng lai, gây lãng phí dung lượng lưu trữ và làm chậm tốc độ xuất vé bán hàng. Ngược lại, nếu khách hàng thân thiết hủy tài khoản, các hóa đơn mua sắm trong quá khứ của họ không được phép biến mất khỏi hệ thống báo cáo doanh thu.
@@ -733,7 +736,7 @@ Thiết kế CSDL \texttt{supermarket\_db} không chỉ đáp ứng bài toán l
 CONSTRAINT fk_orders_customers FOREIGN KEY (customer_id) 
 REFERENCES customers(customer_id) ON DELETE SET NULL ON UPDATE CASCADE
 \end{lstlisting}
-Khi khách vãng lai mua hàng, hệ thống ghi nhận \texttt{customer\_id = NULL}. Khi một hồ sơ hội viên bị xóa, các hóa đơn liên quan vẫn được lưu giữ nguyên vẹn với trường \texttt{customer\_id} tự động chuyển sang \texttt{NULL}, bảo toàn 100\% báo cáo doanh thu tổng của siêu thị.
+Khi khách vãng lai mua hàng, hệ thống ghi nhận \texttt{customer\_id = NULL}. Khi một hồ sơ hội viên bị xóa, các hóa đơn liên quan vẫn được lưu giữ nguyên vẹn với trường \texttt{customer\_id} tự động chuyển sang \texttt{NULL}, bảo toàn dữ liệu báo cáo doanh thu tổng của siêu thị.
 
 \subsection{Ràng Buộc Toàn Vẹn Bảo Vệ Dữ Liệu Kế Toán}
 \noindent\textbf{Vấn đề nghiệp vụ:} Thao tác xóa nhầm danh mục hàng hóa, nhân viên bán hàng hoặc thông tin mặt hàng đang có giao dịch phát sinh sẽ tạo ra các bản ghi mồ côi, làm sai lệch toàn bộ báo cáo doanh số và quy trình đối soát công nợ.
@@ -741,16 +744,16 @@ Khi khách vãng lai mua hàng, hệ thống ghi nhận \texttt{customer\_id = N
 \vspace{0.2cm}
 \noindent\textbf{Giải pháp thiết kế:} Hệ thống áp dụng quy tắc khóa nghiêm ngặt \texttt{ON DELETE RESTRICT} trên các mối quan hệ trọng yếu:
 \begin{itemize}
-    \item \texttt{fk\_products\_categories}: Chặn hoàn toàn việc xóa danh mục nếu ngành hàng đó vẫn còn chứa sản phẩm liên kết.
+    \item \texttt{fk\_products\_categories}: Chặn việc xóa danh mục nếu ngành hàng đó vẫn còn chứa sản phẩm liên kết.
     \item \texttt{fk\_orders\_employees}: Chặn việc xóa hồ sơ nhân viên nếu người đó đã từng thực hiện xuất bất kỳ hóa đơn nào.
     \item \texttt{fk\_order\_details\_products}: Ngăn chặn việc xóa dữ liệu sản phẩm nếu mặt hàng đã từng xuất hiện trong lịch sử mua hàng của khách.
 \end{itemize}
-Nhờ đó, tính toàn vẹn tham chiếu của cơ sở dữ liệu được MySQL bảo vệ ở tầng thấp nhất, loại trừ triệt để nguy cơ lỗi do người vận hành.
+Nhờ đó, tính toàn vẹn tham chiếu của cơ sở dữ liệu được MySQL kiểm soát ngay ở tầng lưu trữ, hạn chế đáng kể nguy cơ thao tác nhầm của người vận hành.
 
-\subsection{Thiết Kế Tương Thích Hoàn Hảo Với Cụm Nhân Bản MySQL (GTID và InnoDB)}
+\subsection{Thiết Kế Tương Thích Với Cụm Nhân Bản MySQL (GTID và InnoDB)}
 \noindent\textbf{Đặc thù phân tán:} Cụm cơ sở dữ liệu vận hành theo mô hình Master-Slave với cơ chế định dạng bản ghi nhị phân kết hợp định danh giao dịch toàn cục \textbf{GTID}. Trong kiến trúc này, việc thiết kế lược đồ bảng đóng vai trò quyết định đến hiệu năng sao chép:
 \begin{enumerate}
-    \item \textbf{Engine lưu trữ InnoDB 100\%:} Tất cả 6 bảng đều sử dụng động cơ \texttt{InnoDB} với bảng mã \texttt{utf8mb4\_unicode\_ci}. InnoDB hỗ trợ cơ chế khóa ở cấp độ dòng và tính năng tự khôi phục sau sự cố, tương thích tuyệt đối với tham số an toàn giao dịch \texttt{innodb\_flush\_log\_at\_trx\_commit = 1}.
+    \item \textbf{Sử dụng thống nhất Engine InnoDB:} Tất cả 6 bảng đều sử dụng động cơ \texttt{InnoDB} với bảng mã \texttt{utf8mb4\_unicode\_ci}. InnoDB hỗ trợ cơ chế khóa ở cấp độ dòng và tính năng tự khôi phục sau sự cố, tương thích tốt với tham số an toàn giao dịch \texttt{innodb\_flush\_log\_at\_trx\_commit = 1}.
     \item \textbf{Bắt buộc khóa chính số nguyên \texttt{AUTO\_INCREMENT PRIMARY KEY}:} Mọi bảng đều sở hữu một khóa chính duy nhất kiểu số nguyên tự tăng. Khi thực hiện sao chép định dạng \texttt{ROW}, các node Slave sử dụng khóa chính để tìm nạp trực tiếp dòng dữ liệu cần sửa đổi/xóa qua chỉ mục Clustered Index ($O(1)$). Nếu thiếu khóa chính, Slave buộc phải quét toàn bộ bảng cho mỗi bản ghi trong Binary Log, dẫn đến hiện tượng trễ nhân bản nghiêm trọng và làm nghẽn cụm.
     \item \textbf{Định danh giao dịch duy nhất cho hóa đơn (\texttt{order\_code UNIQUE}):} Ngăn chặn nguy cơ trùng lặp mã hóa đơn khi hệ thống mở rộng quy mô phục vụ nhiều cổng thanh toán đồng thời.
 \end{enumerate}
@@ -763,7 +766,7 @@ Nhờ đó, tính toàn vẹn tham chiếu của cơ sở dữ liệu được M
 Quy trình triển khai thực tế cụm cơ sở dữ liệu phân tán 1 Master -- 2 Slave cho hệ thống quản lý bán hàng siêu thị được tự động hóa theo 4 giai đoạn tuần tự: (1) Khởi tạo hạ tầng container và mạng nội bộ bằng Docker Compose; (2) Tinh chỉnh tham số engine MySQL tách biệt giữa Master và Slave; (3) Thiết lập kết nối nhân bản tự động theo chuẩn GTID; và (4) Nạp dữ liệu nghiệp vụ ban đầu kết hợp nghiệm thu trạng thái đồng bộ toàn cụm.
 
 \section{Triển khai Hạ tầng với Docker Compose}
-Tệp cấu hình \texttt{docker-compose.yml} tại thư mục gốc định nghĩa tập trung toàn bộ cụm 3 máy chủ MySQL 8.0, đảm bảo tính nhất quán tuyệt đối về phiên bản hệ quản trị, không gian mạng và ổ đĩa lưu trữ bền vững mỗi khi khởi tạo môi trường:
+Tệp cấu hình \texttt{docker-compose.yml} tại thư mục gốc định nghĩa tập trung toàn bộ cụm 3 máy chủ MySQL 8.0, đảm bảo tính đồng nhất về phiên bản hệ quản trị, không gian mạng và ổ đĩa lưu trữ bền vững mỗi khi khởi tạo môi trường:
 
 \begin{lstlisting}[caption={Cấu hình triển khai cụm 3 node trong tệp docker-compose.yml}]
 services:
@@ -851,7 +854,7 @@ binlog_expire_logs_seconds = 604800
 max_binlog_size = 100M
 \end{lstlisting}
 
-Trên Master, tham số \texttt{binlog\_format = ROW} bắt buộc hệ quản trị ghi nhận sự thay đổi dữ liệu ở mức từng dòng bản ghi thực tế thay vì câu lệnh SQL thuần túy, loại bỏ triệt để nguy cơ sai lệch dữ liệu khi sử dụng các hàm phi tất định như \texttt{NOW()} hay \texttt{UUID()}. Đồng thời, \texttt{binlog-do-db = supermarket\_db} giúp cô lập luồng nhân bản chỉ tập trung vào CSDL nghiệp vụ siêu thị, bỏ qua các bảng hệ thống nội bộ.
+Trên Master, tham số \texttt{binlog\_format = ROW} bắt buộc hệ quản trị ghi nhận sự thay đổi dữ liệu ở mức từng dòng bản ghi thực tế thay vì câu lệnh SQL thuần túy, ngăn ngừa hiệu quả nguy cơ sai lệch dữ liệu khi sử dụng các hàm phi tất định như \texttt{NOW()} hay \texttt{UUID()}. Đồng thời, \texttt{binlog-do-db = supermarket\_db} giúp cô lập luồng nhân bản chỉ tập trung vào CSDL nghiệp vụ siêu thị, bỏ qua các bảng hệ thống nội bộ.
 
 \subsection{Cấu hình trên hai Máy chủ Slave}
 Hai tệp \texttt{config/slave1/my.cnf} và \texttt{config/slave2/my.cnf} được cấu hình đồng nhất về cơ chế bảo vệ và nhân bản, chỉ khác biệt ở mã định danh nút mạng (\texttt{server-id = 2} đối với Slave 1 và \texttt{server-id = 3} đối với Slave 2):
@@ -879,7 +882,7 @@ So với Master, tệp cấu hình của Slave bổ sung ba nhóm tham số chuy
 \section{Thiết lập Kết nối Nhân bản Tự động}
 Sau khi cả 3 container khởi chạy ổn định, quá trình kết nối luồng nhân bản được tự động hóa hoàn toàn thông qua kịch bản \texttt{scripts/01\_setup\_replication.sh} gồm hai bước cốt lõi:
 
-\textbf{Bước 1 -- Khởi tạo tài khoản nhân bản chuyên dụng trên Master:} Thay vì sử dụng tài khoản quản trị tối cao \texttt{root} tiềm ẩn rủi ro bảo mật, nhóm khởi tạo tài khoản riêng \texttt{repl\_user} chỉ được cấp duy nhất đặc quyền \texttt{REPLICATION SLAVE}. Phương thức xác thực \texttt{mysql\_native\_password} được chỉ định rõ ràng nhằm đảm bảo luồng I/O Thread trên các Slave bắt tay qua kết nối mạng nội bộ Docker không gặp rào cản trao đổi khóa RSA công khai của MySQL 8.0:
+\textbf{Bước 1 -- Khởi tạo tài khoản nhân bản chuyên dụng trên Master:} Thay vì sử dụng tài khoản quản trị mặc định \texttt{root} tiềm ẩn rủi ro bảo mật, nhóm khởi tạo tài khoản riêng \texttt{repl\_user} chỉ được cấp duy nhất đặc quyền \texttt{REPLICATION SLAVE}. Phương thức xác thực \texttt{mysql\_native\_password} được chỉ định rõ ràng nhằm đảm bảo luồng I/O Thread trên các Slave bắt tay qua kết nối mạng nội bộ Docker không gặp rào cản trao đổi khóa RSA công khai của MySQL 8.0:
 
 \begin{lstlisting}[language=SQL, caption={Khởi tạo và phân quyền tài khoản nhân bản trên Master}]
 CREATE USER IF NOT EXISTS 'repl_user'@'%'
@@ -933,23 +936,23 @@ Thay vì chèn đơn lẻ từng bản ghi gây nghẽn I/O đĩa dưới cơ ch
 \texttt{Replica\_IO\_Running} & \texttt{Yes} & Luồng I/O Thread đang kết nối tốt và nhận Binary Log liên tục từ Master. \\
 \texttt{Replica\_SQL\_Running} & \texttt{Yes} & Luồng SQL Applier đang đọc Relay Log và thực thi dữ liệu vào InnoDB ổn định. \\
 \texttt{Auto\_Position} & \texttt{1} & Cơ chế tự động định vị và bù giao dịch theo tập hợp GTID đã được kích hoạt. \\
-\texttt{Seconds\_Behind\_Source} & \texttt{0} & Độ trễ đồng bộ bằng 0 giây, dữ liệu trên Slave bắt kịp thời gian thực với Master. \\
+\texttt{Seconds\_Behind\_Source} & \texttt{0} & Độ trễ nhân bản bằng 0 giây, luồng nhân bản bất đồng bộ trên Slave đã bắt kịp hoàn toàn với Master. \\
 \texttt{Last\_Error} & \textit{(Trống)} & Không phát sinh bất kỳ xung đột khóa ngoại hay lỗi cú pháp nào trên luồng nhân bản. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Cuối cùng, kịch bản \texttt{02\_verify\_replication.sh} thực thi truy vấn \texttt{UNION ALL} đếm số dòng của cả 6 bảng trên ba máy chủ Master, Slave 1 và Slave 2. Kết quả đối soát khớp nhau tuyệt đối 100\% ở mốc \textbf{2.620.520 bản ghi/node} (tổng cộng \textbf{7.861.560 bản ghi} trên toàn cụm), khẳng định hệ thống đã sẵn sàng cho giai đoạn thực nghiệm chuyên sâu tại Chương 4.
+Cuối cùng, kịch bản \texttt{02\_verify\_replication.sh} thực thi truy vấn \texttt{UNION ALL} đếm số dòng của cả 6 bảng trên ba máy chủ Master, Slave 1 và Slave 2. Kết quả đối soát khớp nhau hoàn toàn ở mốc \textbf{2.620.520 bản ghi/node} (tổng cộng \textbf{7.861.560 bản ghi} trên toàn cụm), xác nhận hệ thống đã sẵn sàng cho giai đoạn thực nghiệm tại Chương 4.
 
 % ------------------------------------------------------------------------------
 % CHƯƠNG 4
 % ------------------------------------------------------------------------------
 \chapter{Kết Quả Thực Nghiệm Chi Tiết}
 
-Nhóm đã xây dựng và kiểm thử toàn diện \textbf{8 ca thực nghiệm} trên nền cơ sở dữ liệu quy mô \textbf{2.620.520 bản ghi/node}, mô phỏng đầy đủ mọi tình huống vận hành thực tế, sự cố hạ tầng và áp lực tải cao điểm của chuỗi siêu thị. Toàn bộ 8 ca dưới đây được trình bày thống nhất theo cấu trúc: mục tiêu kiểm thử, kịch bản lệnh thực thi, bảng số liệu đối soát thực tế và phân tích kết quả (ảnh chụp màn hình Terminal đối chứng được tổng hợp tại Phụ lục~\ref{chap:appendix}).
+Nhóm đã xây dựng và kiểm thử \textbf{8 ca thực nghiệm} trên nền cơ sở dữ liệu quy mô \textbf{2.620.520 bản ghi/node}, mô phỏng các tình huống vận hành điển hình, sự cố hạ tầng và áp lực tải cao điểm của chuỗi siêu thị. Toàn bộ 8 ca dưới đây được trình bày thống nhất theo cấu trúc: mục tiêu kiểm thử, kịch bản lệnh thực thi, bảng số liệu đối soát thực tế và phân tích kết quả (ảnh chụp màn hình Terminal đối chứng được tổng hợp tại Phụ lục~\ref{chap:appendix}).
 
 \section{Ca 1: Đồng bộ Dữ liệu Bán hàng Xuôi}
-\textbf{Mục tiêu:} Chứng minh mọi thao tác thêm mới giao dịch, cập nhật tồn kho và xóa dữ liệu hợp lệ phát sinh trên \texttt{mysql-master} đều được nhân bản tức thời và chính xác sang cả hai máy Slave.
+\textbf{Mục tiêu:} Kiểm chứng các thao tác thêm mới giao dịch, cập nhật tồn kho và xóa dữ liệu hợp lệ phát sinh trên \texttt{mysql-master} được nhân bản nhanh chóng và chính xác sang cả hai máy Slave.
 
 Kịch bản \texttt{01\_test\_dml\_replication.sh} thực thi tuần tự cả ba nhóm câu lệnh DML trên máy chủ Master như trình bày tại Listing~\ref{lst:ca1_dml}:
 
@@ -989,10 +992,10 @@ DELETE FROM categories WHERE category_name = 'Temp_Promo';
 \end{tabularx}
 \end{table}
 
-\noindent \textbf{Nhận xét kết quả:} Toàn bộ 6 bảng trên cả ba node khớp dữ liệu chính xác 100\% ngay sau khi thực thi với thời gian lan truyền dưới $10\text{ ms}$, dải \texttt{Executed\_Gtid\_Set} trên Master, Slave 1 và Slave 2 đồng nhất tuyệt đối tại mốc \texttt{daedfed3-...:1-6} (xem Hình~\ref{fig:ca1}, Phụ lục~\ref{chap:appendix}).
+\noindent \textbf{Nhận xét kết quả:} Dữ liệu trên cả ba node khớp nhau hoàn toàn sau khi thực thi với thời gian lan truyền dưới $10\text{ ms}$, dải \texttt{Executed\_Gtid\_Set} trên Master, Slave 1 và Slave 2 đồng nhất tại mốc \texttt{daedfed3-...:1-6} (xem Hình~\ref{fig:ca1}, Phụ lục~\ref{chap:appendix}).
 
 \section{Ca 2: Bảo vệ Tính Toàn vẹn với Khóa Ghi Độc quyền}
-\textbf{Mục tiêu:} Kiểm chứng các trạm Slave từ chối 100\% mọi hành vi ghi trái phép từ ứng dụng và quản trị viên bên ngoài nhờ chế độ \texttt{super\_read\_only = 1}, nhưng vẫn miễn trừ cho luồng Replication Applier từ Master.
+\textbf{Mục tiêu:} Kiểm chứng các trạm Slave từ chối các thao tác ghi trực tiếp từ ứng dụng và quản trị viên bên ngoài nhờ chế độ \texttt{super\_read\_only = 1}, nhưng vẫn miễn trừ cho luồng Replication Applier từ Master.
 
 Kịch bản \texttt{02\_test\_readonly\_protection.sh} gửi trực tiếp ba lệnh ghi trái phép vào hai máy Slave (bằng tài khoản quản trị \texttt{root}), sau đó đối chứng khả năng truy vấn đọc và luồng nhân bản từ Master (Listing~\ref{lst:ca2_readonly}):
 
@@ -1029,7 +1032,7 @@ VALUES ('893_AUTH_1795627599', 'Nuoc mam Phu Quoc 40 do dam', 5, 'Chai', 65000, 
 \end{tabularx}
 \end{table}
 
-\noindent \textbf{Nhận xét kết quả:} Cơ chế khóa ghi hai lớp bảo vệ tuyệt đối dữ liệu tại các trạm bản sao khỏi nguy cơ sai lệch cục bộ (Split-Brain), đồng thời duy trì thông suốt cả luồng đọc POS lẫn luồng nhân bản ngầm từ Master (xem ảnh chụp Terminal tại Hình~\ref{fig:ca2}, Phụ lục~\ref{chap:appendix}).
+\noindent \textbf{Nhận xét kết quả:} Cơ chế khóa ghi hai lớp bảo vệ chặt chẽ dữ liệu tại các trạm bản sao khỏi nguy cơ sai lệch cục bộ (Split-Brain), đồng thời duy trì thông suốt cả luồng đọc POS lẫn luồng nhân bản ngầm từ Master (xem ảnh chụp Terminal tại Hình~\ref{fig:ca2}, Phụ lục~\ref{chap:appendix}).
 
 \section{Ca 3: Gián đoạn Mạng và Tự động Bù Dữ liệu qua GTID}
 \textbf{Mục tiêu:} Đánh giá khả năng chịu lỗi (Fault Tolerance) khi một máy Slave bị mất kết nối mạng tạm thời trong lúc siêu thị vẫn liên tục phát sinh giao dịch mới trên Master.
@@ -1188,7 +1191,7 @@ Tổng số bản ghi bảng \texttt{orders} sau kiểm thử & \texttt{500.500}
 \end{tabularx}
 \end{table}
 
-\noindent \textbf{Nhận xét kết quả:} Dưới áp lực 500 lệnh \texttt{COMMIT} liên tục (tương đương tần suất $\approx 178$ hóa đơn/giây trong giờ cao điểm siêu thị), hai luồng I/O Thread và SQL Applier trên cả hai Slave theo sát Master theo thời gian thực (\texttt{daedfed3-...:1-543}), giữ chỉ số trễ ở mức cận không (\texttt{Near Zero Lag}) và bảo toàn 100\% số lượng đơn hàng (xem Hình~\ref{fig:ca6}, Phụ lục~\ref{chap:appendix}).
+\noindent \textbf{Nhận xét kết quả:} Dưới áp lực 500 lệnh \texttt{COMMIT} liên tục (tương đương tần suất $\approx 178$ hóa đơn/giây trong giờ cao điểm siêu thị), hai luồng I/O Thread và SQL Applier trên cả hai Slave bám sát Master liên tục (\texttt{daedfed3-...:1-543}), giữ độ trễ nhân bản bất đồng bộ chỉ ở mức \texttt{0--1 giây} và bảo toàn 100\% số lượng đơn hàng (xem Hình~\ref{fig:ca6}, Phụ lục~\ref{chap:appendix}).
 
 \section{Ca 7: Xử lý Thảm họa khi Master Sập Nguồn Hoàn toàn}
 \textbf{Mục tiêu:} Xử lý tình huống thảm họa máy chủ Master ngừng hoạt động vĩnh viễn, thực hiện quy trình thăng hạng Slave 1 làm Master mới (New Primary) và điều hướng Slave 2 sang nhận dữ liệu từ Slave 1 qua GTID.
@@ -1280,9 +1283,9 @@ SHOW PROFILES;
 
 \noindent \textbf{Nhận xét kết quả} (đối chứng ảnh chụp thực tế tại Hình~\ref{fig:ca8}, Phụ lục~\ref{chap:appendix}):
 \begin{itemize}
-    \item \textbf{Thông lượng nạp và đồng bộ toàn cụm:} Quá trình sinh và nạp \textbf{2.620.520 bản ghi} trên \texttt{mysql-master} hoàn tất trong \textbf{42,55 giây} (tốc độ trung bình đạt \textbf{61.586 bản ghi/giây}). Cả ba node (\texttt{mysql-master}, \texttt{mysql-slave-1}, \texttt{mysql-slave-2}) đối soát khớp nhau tuyệt đối ở mốc \texttt{2.620.520} bản ghi/node (\textbf{7.861.560 bản ghi} toàn cụm).
+    \item \textbf{Thông lượng nạp và đồng bộ toàn cụm:} Quá trình sinh và nạp \textbf{2.620.520 bản ghi} trên \texttt{mysql-master} hoàn tất trong \textbf{42,55 giây} (tốc độ trung bình đạt \textbf{61.586 bản ghi/giây}). Cả ba node (\texttt{mysql-master}, \texttt{mysql-slave-1}, \texttt{mysql-slave-2}) đối soát khớp nhau hoàn toàn ở mốc \texttt{2.620.520} bản ghi/node (\textbf{7.861.560 bản ghi} toàn cụm).
     \item \textbf{Dung lượng vật lý và nhật ký nhị phân:} Mỗi máy chủ lưu trữ chính xác \textbf{258,91 MB} dữ liệu bảng và chỉ mục B+Tree (\texttt{order\_details} chiếm \texttt{160,75 MB}, \texttt{orders} chiếm \texttt{81,16 MB}). Cộng thêm Binary Log, Relay Log và InnoDB Redo/Undo Log, tổng dung lượng vật lý trên toàn cụm đạt \textbf{1,92 GB}.
-    \item \textbf{Hiệu năng tra cứu POS và cô lập tải phân tích:} Truy vấn 1 (tra cứu mã vạch \texttt{8938500015678} -- mặt hàng \texttt{ID=15678}, giá \texttt{158.000,00đ}, tồn \texttt{618}) đạt thời gian phản hồi chỉ \textbf{0,00034550 giây} (\textbf{0,35 ms} $< 1\text{ms}$) nhờ chỉ mục B+Tree duy nhất. Ngược lại, Truy vấn 2 (quét gom nhóm doanh thu theo 4 phương thức thanh toán trên toàn bộ $500.000$ hóa đơn, mỗi nhóm $\approx 125.000$ đơn) tiêu tốn \textbf{0,21674675 giây} (\textbf{216,75 ms}, nặng gấp hơn $627$ lần truy vấn POS; hoặc tới \textbf{14,07 giây} khi kết nối chéo sang 2 triệu dòng chi tiết). Việc đẩy hoàn toàn luồng báo cáo nặng này sang hai trạm Slave giúp giải phóng 100\% tài nguyên CPU và I/O cho \texttt{mysql-master}.
+    \item \textbf{Hiệu năng tra cứu POS và cô lập tải phân tích:} Truy vấn 1 (tra cứu mã vạch \texttt{8938500015678} -- mặt hàng \texttt{ID=15678}, giá \texttt{158.000,00đ}, tồn \texttt{618}) đạt thời gian phản hồi chỉ \textbf{0,00034550 giây} (\textbf{0,35 ms} $< 1\text{ms}$) nhờ chỉ mục B+Tree duy nhất. Ngược lại, Truy vấn 2 (quét gom nhóm doanh thu theo 4 phương thức thanh toán trên toàn bộ $500.000$ hóa đơn, mỗi nhóm $\approx 125.000$ đơn) tiêu tốn \textbf{0,21674675 giây} (\textbf{216,75 ms}, nặng gấp hơn $627$ lần truy vấn POS; hoặc tới \textbf{14,07 giây} khi kết nối chéo sang 2 triệu dòng chi tiết). Việc đẩy luồng báo cáo nặng này sang hai trạm Slave giúp giảm tải đáng kể CPU và I/O cho \texttt{mysql-master}.
 \end{itemize}
 
 % ------------------------------------------------------------------------------
@@ -1291,20 +1294,20 @@ SHOW PROFILES;
 \chapter{Đánh Giá Tổng Kết Và Hướng Phát Triển}
 
 \section{Đánh giá Kết quả Đạt được}
-Cụm cơ sở dữ liệu nhân bản 1 Master -- 2 Slave đã hoàn thành xuất sắc các yêu cầu kỹ thuật và thực nghiệm:
+Cụm cơ sở dữ liệu nhân bản 1 Master -- 2 Slave đã đáp ứng đầy đủ các yêu cầu kỹ thuật và thực nghiệm đề ra:
 \begin{enumerate}
-    \item Vận hành ổn định, tự động đồng bộ thời gian thực cho nghiệp vụ bán lẻ siêu thị.
+    \item Vận hành ổn định cơ chế nhân bản bất đồng bộ tự động với độ trễ thấp cho nghiệp vụ bán lẻ siêu thị.
     \item Kiểm chứng thành công khả năng chịu tải ở quy mô \textbf{2.620.520 bản ghi/node} (hơn \textbf{7,86 triệu bản ghi} toàn cụm) với thông lượng nạp 61.586 bản ghi/giây và độ trễ tra cứu POS đạt 0,35 ms (\texttt{0,00034550 giây}).
-    \item Ứng dụng chuẩn GTID hiện đại giúp việc giám sát, bù dữ liệu đứt mạng và khôi phục thảm họa diễn ra tự động, chính xác tuyệt đối.
-    \item Bảo vệ toàn vẹn dữ liệu ở cấp độ cao nhất thông qua cơ chế Super Read-Only và Crash-Safety.
+    \item Ứng dụng chuẩn GTID giúp việc giám sát, bù dữ liệu khi gián đoạn mạng và khôi phục sự cố diễn ra tự động, nhất quán.
+    \item Đảm bảo tính toàn vẹn dữ liệu trên các bản sao thông qua cơ chế khóa ghi Super Read-Only và cấu hình ghi bền vững Crash-Safety.
 \end{enumerate}
 
 \section{Hướng Mở rộng trong Môi trường Doanh nghiệp}
 Trong các hệ thống chuỗi siêu thị quy mô toàn quốc, nhóm đề xuất các hướng mở rộng:
 \begin{itemize}
     \item \textbf{Tích hợp ProxySQL / HAProxy:} Đặt một lớp cân bằng tải phía trước cụm để ứng dụng bán hàng tự động phân luồng ghi về Master và chia tải đọc cho các Slave mà không cần cấu hình trong mã nguồn ứng dụng.
-    \item \textbf{Bán đồng bộ (Semi-Synchronous Replication):} Đảm bảo Master chỉ xác nhận giao dịch khi có ít nhất một Slave đã nhận log, loại bỏ hoàn toàn nguy cơ mất dữ liệu khi Master cháy ổ cứng đột ngột.
-    \item \textbf{Tự động hóa chuyển giao với Orchestrator:} Tự động phát hiện Master sập và thực hiện quy trình Failover trong vòng 5 giây mà không cần con người can thiệp.
+    \item \textbf{Bán đồng bộ (Semi-Synchronous Replication):} Đảm bảo Master chỉ xác nhận giao dịch khi có ít nhất một Slave đã nhận log, giảm thiểu đáng kể nguy cơ mất dữ liệu khi Master gặp sự cố phần cứng đột ngột.
+    \item \textbf{Tự động hóa chuyển giao với Orchestrator:} Tự động phát hiện Master sập và thực hiện quy trình Failover trong vòng vài giây mà không cần con người can thiệp thủ công.
 \end{itemize}
 
 % ------------------------------------------------------------------------------
